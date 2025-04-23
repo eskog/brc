@@ -8,7 +8,15 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
+
+//files are:
+//1b.txt
+//1m.txt
+//10k.txt
+
+const inputfile = "/Users/skogen/Projects/1brc/data/1b.txt"
 
 type measurepoint struct {
 	name          string
@@ -16,8 +24,8 @@ type measurepoint struct {
 	count         int
 }
 
-func newMeasurepoint(stationname string, value float32) measurepoint {
-	return measurepoint{
+func newMeasurepoint(stationname string, value float32) *measurepoint {
+	return &measurepoint{
 		name:  stationname,
 		min:   value,
 		max:   value,
@@ -26,7 +34,7 @@ func newMeasurepoint(stationname string, value float32) measurepoint {
 	}
 }
 
-func insertData(mp measurepoint, stationname string, value float32) measurepoint {
+func insertData(mp *measurepoint, stationname string, value float32) *measurepoint {
 	if mp.name != stationname {
 		return mp
 	}
@@ -41,20 +49,23 @@ func insertData(mp measurepoint, stationname string, value float32) measurepoint
 	return mp
 }
 
-func parse(mp *[]measurepoint, stationname string, value float32) {
-	for i := 0; i < len(*mp); i++ {
-		if (*mp)[i].name == stationname {
-			(*mp)[i] = insertData((*mp)[i], stationname, value)
-			return
-		}
+func parse(mp map[string]*measurepoint, stationname string, value float32) {
+	station, exists := mp[stationname]
+	if !exists {
+		mp[stationname] = newMeasurepoint(stationname, value)
+		return
 	}
-	*mp = append(*mp, newMeasurepoint(stationname, value))
+	mp[stationname] = insertData(station, stationname, value)
 }
 
 func main() {
+	starttime := time.Now()
+	defer func() {
+		fmt.Printf("Execution time: %s", time.Since(starttime))
+	}()
 
-	measurePoints := new([]measurepoint)
-	file, err := os.Open("input-short.txt")
+	measurePoints := make(map[string]*measurepoint)
+	file, err := os.Open(inputfile)
 	if err != nil {
 		log.Fatalln("Unable to open file")
 	}
@@ -78,7 +89,7 @@ func main() {
 		parse(measurePoints, vals[0], float32(parsedFloat))
 
 	}
-	for _, mp := range *measurePoints {
+	for _, mp := range measurePoints {
 		fmt.Printf("%s: %.1f/%.1f/%.1f\n", mp.name, mp.min, mp.sum/float32(mp.count), mp.max)
 	}
 }
