@@ -19,14 +19,12 @@ import (
 const inputfile = "/Users/skogen/Projects/1brc/data/1b.txt"
 
 type measurepoint struct {
-	name          string
 	min, max, sum float32
 	count         int
 }
 
-func newMeasurepoint(stationname string, value float32) *measurepoint {
+func newMeasurepoint(value float32) *measurepoint {
 	return &measurepoint{
-		name:  stationname,
 		min:   value,
 		max:   value,
 		sum:   value,
@@ -34,10 +32,7 @@ func newMeasurepoint(stationname string, value float32) *measurepoint {
 	}
 }
 
-func insertData(mp *measurepoint, stationname string, value float32) *measurepoint {
-	if mp.name != stationname {
-		return mp
-	}
+func insertData(mp *measurepoint, value float32) *measurepoint {
 	if mp.min > value {
 		mp.min = value
 	}
@@ -52,10 +47,10 @@ func insertData(mp *measurepoint, stationname string, value float32) *measurepoi
 func parse(mp map[string]*measurepoint, stationname string, value float32) {
 	station, exists := mp[stationname]
 	if !exists {
-		mp[stationname] = newMeasurepoint(stationname, value)
+		mp[stationname] = newMeasurepoint(value)
 		return
 	}
-	mp[stationname] = insertData(station, stationname, value)
+	mp[stationname] = insertData(station, value)
 }
 
 func main() {
@@ -89,7 +84,7 @@ func main() {
 		parse(measurePoints, vals[0], float32(parsedFloat))
 
 	}
-	for _, mp := range measurePoints {
-		fmt.Printf("%s: %.1f/%.1f/%.1f\n", mp.name, mp.min, mp.sum/float32(mp.count), mp.max)
+	for stationname, mp := range measurePoints {
+		fmt.Printf("%s: %.1f/%.1f/%.1f\n", stationname, mp.min, mp.sum/float32(mp.count), mp.max)
 	}
 }
